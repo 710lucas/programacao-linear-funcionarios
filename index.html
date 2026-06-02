@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -15,7 +14,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -35,7 +33,6 @@
     </script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
-
     <!-- Cabeçalho -->
     <header class="bg-white border-b border-slate-200 py-6 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
@@ -79,17 +76,40 @@
                             oninput="calcular()">
                     </div>
 
-                    <!-- Input 2: Verba -->
+                    <!-- Input 2: Notebooks em Estoque (Variável +1 Adicionada) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-slate-600 uppercase">Notebooks em Estoque</span>
+                            <span class="text-corporate-600" id="label-laptops">45 máquinas</span>
+                        </div>
+                        <input type="range" id="res-laptops" min="5" max="150" value="45" 
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
+                            oninput="calcular()">
+                    </div>
+
+                    <!-- Input 3: Verba -->
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs font-bold">
                             <span class="text-slate-600 uppercase">Orçamento Semanal (R$)</span>
                             <span class="text-corporate-600" id="label-budget">R$ 20.000</span>
                         </div>
-                        <input type="range" id="res-budget" min="1000" max="100000" step="1000" value="20000" 
+                        <input type="range" id="res-budget" min="1000" max="150000" step="1000" value="20000" 
                             class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
                             oninput="calcular()">
                     </div>
 
+                    <!-- Input 4: Salário Médio (Salário Médio Adicionado) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-slate-600 uppercase">Salário Semanal Médio</span>
+                            <span class="text-corporate-600" id="label-salary">R$ 2.000 / dev</span>
+                        </div>
+                        <input type="range" id="res-salary" min="500" max="5000" step="250" value="2000" 
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
+                            oninput="calcular()">
+                    </div>
+
+                    <!-- Requisitos Dinâmicos do Projeto -->
                     <div class="pt-4 border-t border-slate-100 bg-slate-50 p-4 rounded-xl">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Requisitos por Projeto</span>
                         <div class="space-y-2 text-[11px] text-slate-600 font-semibold">
@@ -98,8 +118,16 @@
                                 <span>2 Pessoas / projeto</span>
                             </div>
                             <div class="flex justify-between">
-                                <span><i class="fa-solid fa-money-bill-wave mr-1"></i> Custo Médio:</span>
+                                <span><i class="fa-solid fa-laptop mr-1"></i> Notebooks:</span>
+                                <span>2 Máquinas / projeto</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span><i class="fa-solid fa-money-bill-wave mr-1"></i> Custo Fixo de TI:</span>
                                 <span>R$ 1.500 / projeto</span>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-200 pt-1 text-corporate-600 font-bold">
+                                <span><i class="fa-solid fa-calculator mr-1"></i> Custo Total/Proj:</span>
+                                <span id="label-req-total">R$ 5.500</span>
                             </div>
                         </div>
                     </div>
@@ -158,49 +186,63 @@
                         <!-- KaTeX Formula -->
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
 
     <script>
-        // Coeficientes do problema
+        // Coeficientes constantes do problema por projeto
         const requisitos = {
-            staff: 2, // Funcionários por projeto
-            budget: 1500 // Custo em reais por projeto
+            staff: 2,     // Funcionários por projeto
+            laptops: 2,   // Notebooks por projeto
+            fixedTI: 1500 // Custo fixo operacional de infraestrutura e serviços (R$) por projeto
         };
 
         function calcular() {
             // Pegar valores dos inputs
             const staffDisp = parseInt(document.getElementById('res-staff').value);
+            const laptopsDisp = parseInt(document.getElementById('res-laptops').value);
             const budgetDisp = parseInt(document.getElementById('res-budget').value);
+            const avgSalary = parseInt(document.getElementById('res-salary').value);
 
-            // Atualizar labels
+            // Calcular o custo salarial gerado por projeto (2 devs * salário individual)
+            const costOfStaffPerProject = requisitos.staff * avgSalary;
+            const totalCostPerProject = costOfStaffPerProject + requisitos.fixedTI;
+
+            // Atualizar labels numéricos
             document.getElementById('label-staff').innerText = `${staffDisp} pessoas`;
+            document.getElementById('label-laptops').innerText = `${laptopsDisp} máquinas`;
             document.getElementById('label-budget').innerText = `R$ ${budgetDisp.toLocaleString('pt-BR')}`;
+            document.getElementById('label-salary').innerText = `R$ ${avgSalary.toLocaleString('pt-BR')} / dev`;
+            document.getElementById('label-req-total').innerText = `R$ ${totalCostPerProject.toLocaleString('pt-BR')}`;
 
             // Programação Linear (Max Z = x)
-            // Restrição 1: 2x <= staffDisp  -> x <= staffDisp / 2
-            // Restrição 2: 1500x <= budgetDisp -> x <= budgetDisp / 1500
+            // Restrição 1 (Pessoal): 2x <= staffDisp  -> x <= staffDisp / 2
+            // Restrição 2 (Notebooks): 2x <= laptopsDisp -> x <= laptopsDisp / 2
+            // Restrição 3 (Orçamento): (3000 + 2S)x <= budgetDisp -> x <= budgetDisp / totalCostPerProject
             
             const limiteStaff = staffDisp / requisitos.staff;
-            const limiteBudget = budgetDisp / requisitos.budget;
+            const limiteLaptops = laptopsDisp / requisitos.laptops;
+            const limiteBudget = budgetDisp / totalCostPerProject;
 
-            const maxProjetos = Math.floor(Math.min(limiteStaff, limiteBudget));
+            const maxProjetos = Math.floor(Math.min(limiteStaff, limiteLaptops, limiteBudget));
 
             // Atualizar KPI Principal
             document.getElementById('res-final').innerText = `${maxProjetos} ${maxProjetos === 1 ? 'Projeto' : 'Projetos'}`;
 
-            // Calcular Consumo
+            // Calcular Consumo Final Real
             const consumidoStaff = maxProjetos * requisitos.staff;
-            const consumidoBudget = maxProjetos * requisitos.budget;
+            const consumidoLaptops = maxProjetos * requisitos.laptops;
+            const consumidoBudget = maxProjetos * totalCostPerProject;
 
-            const pctStaff = (consumidoStaff / staffDisp) * 100;
-            const pctBudget = (consumidoBudget / budgetDisp) * 100;
+            const pctStaff = staffDisp > 0 ? (consumidoStaff / staffDisp) * 100 : 0;
+            const pctLaptops = laptopsDisp > 0 ? (consumidoLaptops / laptopsDisp) * 100 : 0;
+            const pctBudget = budgetDisp > 0 ? (consumidoBudget / budgetDisp) * 100 : 0;
 
-            // Renderizar Barras de Consumo
+            // Renderizar Barras de Consumo com a nova barra de Laptops
             const container = document.getElementById('usage-bars');
             container.innerHTML = `
+                <!-- Pessoal -->
                 <div class="space-y-2">
                     <div class="flex justify-between text-[10px] font-bold text-slate-500">
                         <span>CAPACIDADE DE PESSOAL</span>
@@ -214,13 +256,28 @@
                         <span>Sobram: ${staffDisp - consumidoStaff}</span>
                     </div>
                 </div>
+                <!-- Notebooks -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>EQUIPAMENTO (NOTEBOOKS)</span>
+                        <span>${pctLaptops.toFixed(0)}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div style="width: ${pctLaptops}%" class="bg-indigo-500 h-full rounded-full transition-all duration-500"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Usado: ${consumidoLaptops} máquinas</span>
+                        <span>Sobram: ${laptopsDisp - consumidoLaptops}</span>
+                    </div>
+                </div>
+                <!-- Financeiro -->
                 <div class="space-y-2">
                     <div class="flex justify-between text-[10px] font-bold text-slate-500">
                         <span>CAPACIDADE FINANCEIRA</span>
                         <span>${pctBudget.toFixed(0)}%</span>
                     </div>
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div style="width: ${pctBudget}%" class="bg-indigo-500 h-full rounded-full transition-all duration-500"></div>
+                        <div style="width: ${pctBudget}%" class="bg-emerald-500 h-full rounded-full transition-all duration-500"></div>
                     </div>
                     <div class="flex justify-between text-[9px] text-slate-400">
                         <span>Gasto: R$ ${consumidoBudget.toLocaleString('pt-BR')}</span>
@@ -229,31 +286,38 @@
                 </div>
             `;
 
-            // Diagnóstico de Gargalo
+            // Diagnóstico de Gargalo (Três limitadores possíveis)
             const descEl = document.getElementById('bottleneck-desc');
             const iconEl = document.getElementById('bottleneck-icon');
             
-            if (limiteStaff < limiteBudget) {
-                descEl.innerHTML = `O gargalo atual é a <b>equipe reduzida</b>. Você tem dinheiro sobrando, mas não tem pessoas suficientes para abrir novos projetos.`;
+            const minLimitVal = Math.min(limiteStaff, limiteLaptops, limiteBudget);
+
+            if (minLimitVal === limiteStaff) {
+                descEl.innerHTML = `O gargalo atual é a <b>equipe reduzida</b>. Você tem dinheiro e computadores sobrando, mas faltam desenvolvedores no mercado para abrir novos projetos.`;
                 iconEl.className = "w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl";
                 iconEl.innerHTML = '<i class="fa-solid fa-user-slash"></i>';
-            } else if (limiteBudget < limiteStaff) {
-                descEl.innerHTML = `O gargalo atual é o <b>orçamento</b>. Você tem equipe ociosa, mas falta verba para financiar os custos operacionais de novos projetos.`;
+            } else if (minLimitVal === limiteLaptops) {
+                descEl.innerHTML = `O gargalo atual são os <b>computadores (Notebooks)</b>. Sua empresa tem orçamento e pessoal prontos, mas faltam laptops de desenvolvimento para entregá-los.`;
+                iconEl.className = "w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="fa-solid fa-laptop-code"></i>';
+            } else if (minLimitVal === limiteBudget) {
+                descEl.innerHTML = `O gargalo atual é o <b>orçamento</b>. A folha de pagamento de <b>R$ ${avgSalary.toLocaleString('pt-BR')}</b> limitou a capacidade financeira operacional.`;
                 iconEl.className = "w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl";
                 iconEl.innerHTML = '<i class="fa-solid fa-sack-xmark"></i>';
             } else {
-                descEl.innerHTML = `Sua operação está <b>perfeitamente balanceada</b> entre capital humano e financeiro.`;
+                descEl.innerHTML = `Sua operação está <b>perfeitamente balanceada</b> entre capital humano, infraestrutura e financeiro.`;
                 iconEl.className = "w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl";
                 iconEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
             }
 
-            // Renderizar Formulação Matemática
+            // Renderizar Formulação Matemática em LaTeX usando KaTeX
             const mathEl = document.getElementById('math-formula');
             const latex = `
             \\begin{aligned}
             \\text{Maximizar Projetos: } & Z = x \\\\
             \\text{Sujeito a (Pessoal): } & ${requisitos.staff}x \\le ${staffDisp} \\\\
-            \\text{Sujeito a (Verba): } & ${requisitos.budget}x \\le ${budgetDisp} \\\\
+            \\text{Sujeito a (Notebooks): } & ${requisitos.laptops}x \\le ${laptopsDisp} \\\\
+            \\text{Sujeito a (Financeiro): } & ${totalCostPerProject}x \\le ${budgetDisp} \\quad \\left(1500 + 2 \\times ${avgSalary}\\right) \\\\
             \\text{Restrição Física: } & x \\in \\mathbb{Z}^+
             \\end{aligned}
             `;
