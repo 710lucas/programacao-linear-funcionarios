@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiStaff Pro - Otimização de Recursos Humanos</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        corporate: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <!-- Cabeçalho -->
+    <header class="bg-white border-b border-slate-200 py-6 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-corporate-600 text-white p-3 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-people-group text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">OptiStaff <span class="text-corporate-600">Pro</span></h1>
+                    <p class="text-xs text-slate-500 font-medium">Otimização Linear de Capital Humano por Setores</p>
+                </div>
+            </div>
+            <div class="hidden md:block text-right">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Algoritmo</span>
+                <p class="text-xs font-bold text-slate-700">Simplex de Variável Única</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- ENTRADAS (Recursos) -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h2 class="font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-database text-corporate-500"></i> Recursos Totais
+                        </h2>
+                        <p class="text-[11px] text-slate-400 mt-1">Defina o limite de recursos da sua empresa (Estoque).</p>
+                    </div>
+
+                    <!-- Input 1: Funcionários -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-slate-600 uppercase">Total de Funcionários</span>
+                            <span class="text-corporate-600" id="label-staff">50 pessoas</span>
+                        </div>
+                        <input type="range" id="res-staff" min="1" max="200" value="50" 
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
+                            oninput="calcular()">
+                    </div>
+
+                    <!-- Input 2: Verba -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-slate-600 uppercase">Orçamento Semanal (R$)</span>
+                            <span class="text-corporate-600" id="label-budget">R$ 20.000</span>
+                        </div>
+                        <input type="range" id="res-budget" min="1000" max="100000" step="1000" value="20000" 
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
+                            oninput="calcular()">
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 bg-slate-50 p-4 rounded-xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Requisitos por Projeto</span>
+                        <div class="space-y-2 text-[11px] text-slate-600 font-semibold">
+                            <div class="flex justify-between">
+                                <span><i class="fa-solid fa-user-gear mr-1"></i> Esforço:</span>
+                                <span>2 Pessoas / projeto</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span><i class="fa-solid fa-money-bill-wave mr-1"></i> Custo Médio:</span>
+                                <span>R$ 1.500 / projeto</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTADOS -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- KPI Card -->
+                <div class="bg-slate-900 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 opacity-10 text-[12rem]">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div class="z-10 text-center md:text-left">
+                        <span class="text-xs font-bold text-corporate-400 uppercase tracking-widest">Capacidade de Entrega</span>
+                        <h3 class="text-5xl font-black mt-2" id="res-final">0 Projetos</h3>
+                        <p class="text-sm text-slate-400 mt-2">Volume máximo de projetos simultâneos suportados.</p>
+                    </div>
+                    <div class="z-10 bg-white/5 border border-white/10 p-6 rounded-2xl text-center min-w-[180px]">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Status Operacional</span>
+                        <div id="status-badge" class="text-emerald-400 font-bold text-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> Eficiente
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Utilização de Recursos -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Utilização dos Recursos</h4>
+                        <div class="space-y-6" id="usage-bars">
+                            <!-- Inserido via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Gargalo Ativo -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center text-center space-y-4">
+                        <div id="bottleneck-icon" class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900 uppercase">Limitador Crítico</h4>
+                            <p id="bottleneck-desc" class="text-xs text-slate-500 mt-2 leading-relaxed">Analizando qual variável está impedindo sua expansão...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quadro Matemático -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Modelo de Programação Linear</h4>
+                        <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500">x = Projetos</span>
+                    </div>
+                    <div id="math-formula" class="bg-slate-50 p-6 rounded-xl overflow-x-auto flex justify-center border border-slate-100">
+                        <!-- KaTeX Formula -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Coeficientes do problema
+        const requisitos = {
+            staff: 2, // Funcionários por projeto
+            budget: 1500 // Custo em reais por projeto
+        };
+
+        function calcular() {
+            // Pegar valores dos inputs
+            const staffDisp = parseInt(document.getElementById('res-staff').value);
+            const budgetDisp = parseInt(document.getElementById('res-budget').value);
+
+            // Atualizar labels
+            document.getElementById('label-staff').innerText = `${staffDisp} pessoas`;
+            document.getElementById('label-budget').innerText = `R$ ${budgetDisp.toLocaleString('pt-BR')}`;
+
+            // Programação Linear (Max Z = x)
+            // Restrição 1: 2x <= staffDisp  -> x <= staffDisp / 2
+            // Restrição 2: 1500x <= budgetDisp -> x <= budgetDisp / 1500
+            
+            const limiteStaff = staffDisp / requisitos.staff;
+            const limiteBudget = budgetDisp / requisitos.budget;
+
+            const maxProjetos = Math.floor(Math.min(limiteStaff, limiteBudget));
+
+            // Atualizar KPI Principal
+            document.getElementById('res-final').innerText = `${maxProjetos} ${maxProjetos === 1 ? 'Projeto' : 'Projetos'}`;
+
+            // Calcular Consumo
+            const consumidoStaff = maxProjetos * requisitos.staff;
+            const consumidoBudget = maxProjetos * requisitos.budget;
+
+            const pctStaff = (consumidoStaff / staffDisp) * 100;
+            const pctBudget = (consumidoBudget / budgetDisp) * 100;
+
+            // Renderizar Barras de Consumo
+            const container = document.getElementById('usage-bars');
+            container.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>CAPACIDADE DE PESSOAL</span>
+                        <span>${pctStaff.toFixed(0)}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div style="width: ${pctStaff}%" class="bg-corporate-500 h-full rounded-full transition-all duration-500"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Usado: ${consumidoStaff} pessoas</span>
+                        <span>Sobram: ${staffDisp - consumidoStaff}</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                        <span>CAPACIDADE FINANCEIRA</span>
+                        <span>${pctBudget.toFixed(0)}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div style="width: ${pctBudget}%" class="bg-indigo-500 h-full rounded-full transition-all duration-500"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Gasto: R$ ${consumidoBudget.toLocaleString('pt-BR')}</span>
+                        <span>Sobram: R$ ${(budgetDisp - consumidoBudget).toLocaleString('pt-BR')}</span>
+                    </div>
+                </div>
+            `;
+
+            // Diagnóstico de Gargalo
+            const descEl = document.getElementById('bottleneck-desc');
+            const iconEl = document.getElementById('bottleneck-icon');
+            
+            if (limiteStaff < limiteBudget) {
+                descEl.innerHTML = `O gargalo atual é a <b>equipe reduzida</b>. Você tem dinheiro sobrando, mas não tem pessoas suficientes para abrir novos projetos.`;
+                iconEl.className = "w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="fa-solid fa-user-slash"></i>';
+            } else if (limiteBudget < limiteStaff) {
+                descEl.innerHTML = `O gargalo atual é o <b>orçamento</b>. Você tem equipe ociosa, mas falta verba para financiar os custos operacionais de novos projetos.`;
+                iconEl.className = "w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="fa-solid fa-sack-xmark"></i>';
+            } else {
+                descEl.innerHTML = `Sua operação está <b>perfeitamente balanceada</b> entre capital humano e financeiro.`;
+                iconEl.className = "w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
+            }
+
+            // Renderizar Formulação Matemática
+            const mathEl = document.getElementById('math-formula');
+            const latex = `
+            \\begin{aligned}
+            \\text{Maximizar Projetos: } & Z = x \\\\
+            \\text{Sujeito a (Pessoal): } & ${requisitos.staff}x \\le ${staffDisp} \\\\
+            \\text{Sujeito a (Verba): } & ${requisitos.budget}x \\le ${budgetDisp} \\\\
+            \\text{Restrição Física: } & x \\in \\mathbb{Z}^+
+            \\end{aligned}
+            `;
+            katex.render(latex, mathEl, { displayMode: true });
+        }
+
+        // Iniciar
+        window.onload = calcular;
+    </script>
+</body>
+</html>
