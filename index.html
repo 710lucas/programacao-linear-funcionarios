@@ -1,331 +1,708 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OptiStaff Pro - Otimização de Recursos Humanos</title>
+    <title>Pizzas - Programação Linear</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- KaTeX -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        corporate: {
-                            50: '#f0f9ff',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
+                        pizza: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
                         }
                     }
                 }
             }
         }
     </script>
+    <style>
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
-    <!-- Cabeçalho -->
-    <header class="bg-white border-b border-slate-200 py-6 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+    <!-- Cabeçalho Simplificado -->
+    <header class="bg-white border-b border-slate-100 py-4 shadow-sm">
+        <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-corporate-600 text-white p-3 rounded-xl shadow-lg">
-                    <i class="fa-solid fa-people-group text-2xl"></i>
+                <div class="bg-pizza-600 text-white p-2.5 rounded-xl">
+                    <i class="fa-solid fa-pizza-slice text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">OptiStaff <span class="text-corporate-600">Pro</span></h1>
-                    <p class="text-xs text-slate-500 font-medium">Otimização Linear de Capital Humano por Setores</p>
+                    <h1 class="text-xl font-black tracking-tight text-slate-900 uppercase">SliceSolver <span class="text-pizza-600">Pro</span></h1>
+                    <p class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Pizzas &bull; Programação Linear</p>
                 </div>
             </div>
-            <div class="hidden md:block text-right">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Algoritmo</span>
-                <p class="text-xs font-bold text-slate-700">Simplex de Variável Única</p>
+            <!-- Toggle de arredondamento discreto -->
+            <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/60">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Produção:</span>
+                <button id="btn-dec" onclick="setRounding(false)" class="text-[10px] font-bold px-2 py-1 rounded-lg transition duration-150 bg-white text-slate-500 hover:text-slate-700">Decimais</button>
+                <button id="btn-int" onclick="setRounding(true)" class="text-[10px] font-bold px-2 py-1 rounded-lg transition duration-150 bg-pizza-600 text-white shadow-sm">Inteiras</button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-10">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="max-w-6xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <!-- ENTRADAS (Recursos) -->
-            <div class="lg:col-span-4 space-y-6">
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
-                    <div class="border-b border-slate-100 pb-4">
-                        <h2 class="font-bold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-database text-corporate-500"></i> Recursos Totais
-                        </h2>
-                        <p class="text-[11px] text-slate-400 mt-1">Defina o limite de recursos da sua empresa (Estoque).</p>
-                    </div>
-
-                    <!-- Input 1: Funcionários -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-bold">
-                            <span class="text-slate-600 uppercase">Total de Funcionários</span>
-                            <span class="text-corporate-600" id="label-staff">50 pessoas</span>
-                        </div>
-                        <input type="range" id="res-staff" min="1" max="200" value="50" 
-                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
-                            oninput="calcular()">
-                    </div>
-
-                    <!-- Input 2: Notebooks em Estoque (Variável +1 Adicionada) -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-bold">
-                            <span class="text-slate-600 uppercase">Notebooks em Estoque</span>
-                            <span class="text-corporate-600" id="label-laptops">45 máquinas</span>
-                        </div>
-                        <input type="range" id="res-laptops" min="5" max="150" value="45" 
-                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
-                            oninput="calcular()">
-                    </div>
-
-                    <!-- Input 3: Verba -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-bold">
-                            <span class="text-slate-600 uppercase">Orçamento Semanal (R$)</span>
-                            <span class="text-corporate-600" id="label-budget">R$ 20.000</span>
-                        </div>
-                        <input type="range" id="res-budget" min="1000" max="150000" step="1000" value="20000" 
-                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
-                            oninput="calcular()">
-                    </div>
-
-                    <!-- Input 4: Salário Médio (Salário Médio Adicionado) -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-bold">
-                            <span class="text-slate-600 uppercase">Salário Semanal Médio</span>
-                            <span class="text-corporate-600" id="label-salary">R$ 2.000 / dev</span>
-                        </div>
-                        <input type="range" id="res-salary" min="500" max="5000" step="250" value="2000" 
-                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-corporate-600"
-                            oninput="calcular()">
-                    </div>
-
-                    <!-- Requisitos Dinâmicos do Projeto -->
-                    <div class="pt-4 border-t border-slate-100 bg-slate-50 p-4 rounded-xl">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Requisitos por Projeto</span>
-                        <div class="space-y-2 text-[11px] text-slate-600 font-semibold">
-                            <div class="flex justify-between">
-                                <span><i class="fa-solid fa-user-gear mr-1"></i> Esforço:</span>
-                                <span>2 Pessoas / projeto</span>
+            <!-- COLUNA DA ESQUERDA (Controles e Entradas) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-sm space-y-6">
+                    
+                    <!-- 1. Estoque Disponível (Mais importante do dia a dia) -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-boxes-stacked text-pizza-500"></i> Estoque na Despensa
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">Massa (kg)</label>
+                                <input type="number" id="rhs-r1" value="10" step="0.5" oninput="calcular()"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-pizza-500 focus:outline-none">
                             </div>
-                            <div class="flex justify-between">
-                                <span><i class="fa-solid fa-laptop mr-1"></i> Notebooks:</span>
-                                <span>2 Máquinas / projeto</span>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">Queijo (kg)</label>
+                                <input type="number" id="rhs-r2" value="5" step="0.5" oninput="calcular()"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-pizza-500 focus:outline-none">
                             </div>
-                            <div class="flex justify-between">
-                                <span><i class="fa-solid fa-money-bill-wave mr-1"></i> Custo Fixo de TI:</span>
-                                <span>R$ 1.500 / projeto</span>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">Molho (kg)</label>
+                                <input type="number" id="rhs-r3" value="4" step="0.5" oninput="calcular()"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-pizza-500 focus:outline-none">
                             </div>
-                            <div class="flex justify-between border-t border-slate-200 pt-1 text-corporate-600 font-bold">
-                                <span><i class="fa-solid fa-calculator mr-1"></i> Custo Total/Proj:</span>
-                                <span id="label-req-total">R$ 5.500</span>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">Calabresa (kg)</label>
+                                <input type="number" id="rhs-r4" value="2" step="0.5" oninput="calcular()"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-pizza-500 focus:outline-none">
                             </div>
                         </div>
                     </div>
+
+                    <!-- 2. Lucro da Venda -->
+                    <div class="space-y-3 pt-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-holding-dollar text-pizza-500"></i> Lucro de Venda (Z)
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">Muçarela X₁ (R$)</label>
+                                <input type="number" id="profit-x1" value="20" step="1" oninput="calcular()"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-pizza-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">Calabresa X₂ (R$)</label>
+                                <input type="number" id="profit-x2" value="25" step="1" oninput="calcular()"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-pizza-500 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Ficha Técnica Ocultável (Declutters 8 inputs) -->
+                    <div class="pt-2 border-t border-slate-100">
+                        <button onclick="toggleFicha()" class="w-full flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-utensils text-pizza-500"></i> Ajustar Ficha Técnica (Receitas)</span>
+                            <i id="ficha-arrow" class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                        </button>
+                        
+                        <div id="ficha-painel" class="hidden mt-4 space-y-4 pt-2">
+                            <!-- Receita Muçarela -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
+                                <span class="text-[10px] font-extrabold text-pizza-700 uppercase tracking-wide flex items-center gap-1">Muçarela (X₁)</span>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Massa (kg)</label>
+                                        <input type="number" id="coef-r1-x1" value="0.5" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Queijo (kg)</label>
+                                        <input type="number" id="coef-r2-x1" value="0.3" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Molho (kg)</label>
+                                        <input type="number" id="coef-r3-x1" value="0.2" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Calabresa (kg)</label>
+                                        <input type="number" id="coef-r4-x1" value="0" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Receita Calabresa -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
+                                <span class="text-[10px] font-extrabold text-orange-700 uppercase tracking-wide flex items-center gap-1">Calabresa (X₂)</span>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Massa (kg)</label>
+                                        <input type="number" id="coef-r1-x2" value="0.5" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Queijo (kg)</label>
+                                        <input type="number" id="coef-r2-x2" value="0.2" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Molho (kg)</label>
+                                        <input type="number" id="coef-r3-x2" value="0.2" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] text-slate-500 block mb-0.5">Calabresa (kg)</label>
+                                        <input type="number" id="coef-r4-x2" value="0.15" step="0.01" oninput="calcular()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões discretos de ação -->
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="restaurarPadrao()" class="flex-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 py-2.5 px-4 rounded-xl transition">
+                            <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Restaurar Exercício
+                        </button>
+                        <button onclick="limparCampos()" class="text-[10px] font-bold text-slate-400 hover:text-red-500 py-2.5 px-4 rounded-xl transition">
+                            <i class="fa-solid fa-trash-can"></i> Zerar
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- RESULTADOS -->
-            <div class="lg:col-span-8 space-y-6">
+            <!-- COLUNA DA DIREITA (Resultados e Gráfico) -->
+            <div class="lg:col-span-7 space-y-6">
                 
-                <!-- KPI Card -->
-                <div class="bg-slate-900 rounded-2xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-                    <div class="absolute -right-10 -bottom-10 opacity-10 text-[12rem]">
-                        <i class="fa-solid fa-briefcase"></i>
+                <!-- KPI Card Premium e Limpo -->
+                <div class="bg-slate-950 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <span class="text-[9px] font-bold text-pizza-400 uppercase tracking-widest block mb-1">Resultado Máximo (Z)</span>
+                        <h3 class="text-3xl font-extrabold text-pizza-100" id="res-lucro">R$ 0,00</h3>
+                        
+                        <div class="mt-3 flex gap-3">
+                            <div class="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                <span class="text-slate-400 text-[8px] uppercase block">Muçarela (X₁)</span>
+                                <span class="font-bold text-xs text-white" id="res-pizza-x1">0 unid.</span>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                <span class="text-slate-400 text-[8px] uppercase block">Calabresa (X₂)</span>
+                                <span class="font-bold text-xs text-white" id="res-pizza-x2">0 unid.</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="z-10 text-center md:text-left">
-                        <span class="text-xs font-bold text-corporate-400 uppercase tracking-widest">Capacidade de Entrega</span>
-                        <h3 class="text-5xl font-black mt-2" id="res-final">0 Projetos</h3>
-                        <p class="text-sm text-slate-400 mt-2">Volume máximo de projetos simultâneos suportados.</p>
-                    </div>
-                    <div class="z-10 bg-white/5 border border-white/10 p-6 rounded-2xl text-center min-w-[180px]">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Status Operacional</span>
-                        <div id="status-badge" class="text-emerald-400 font-bold text-lg flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-circle-check"></i> Eficiente
+                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl text-center w-full md:w-auto">
+                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Status Linear</span>
+                        <div id="status-badge" class="text-emerald-400 font-bold text-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Produção Ótima
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Utilização de Recursos -->
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Utilização dos Recursos</h4>
-                        <div class="space-y-6" id="usage-bars">
-                            <!-- Inserido via JS -->
-                        </div>
-                    </div>
-
-                    <!-- Gargalo Ativo -->
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center text-center space-y-4">
-                        <div id="bottleneck-icon" class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl">
-                            <i class="fa-solid fa-hourglass-half"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-slate-900 uppercase">Limitador Crítico</h4>
-                            <p id="bottleneck-desc" class="text-xs text-slate-500 mt-2 leading-relaxed">Analizando qual variável está impedindo sua expansão...</p>
-                        </div>
+                <!-- Gráfico Cartesiano de Apoio -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Região Viável de Decisão</h4>
+                    <div class="relative w-full">
+                        <canvas id="graph-canvas" class="w-full h-60 bg-slate-50 rounded-xl border border-slate-100"></canvas>
                     </div>
                 </div>
 
-                <!-- Quadro Matemático -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Modelo de Programação Linear</h4>
-                        <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500">x = Projetos</span>
-                    </div>
-                    <div id="math-formula" class="bg-slate-50 p-6 rounded-xl overflow-x-auto flex justify-center border border-slate-100">
-                        <!-- KaTeX Formula -->
+                <!-- Utilização de Recursos Com Alertas de Gargalo Embutidos -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Uso de Insumos & Gargalos</h4>
+                    <div class="space-y-4" id="usage-bars">
+                        <!-- Gerado dinamicamente via JS -->
                     </div>
                 </div>
+
             </div>
         </div>
     </main>
 
     <script>
-        // Coeficientes constantes do problema por projeto
-        const requisitos = {
-            staff: 2,     // Funcionários por projeto
-            laptops: 2,   // Notebooks por projeto
-            fixedTI: 1500 // Custo fixo operacional de infraestrutura e serviços (R$) por projeto
-        };
+        let roundDown = true;
 
-        function calcular() {
-            // Pegar valores dos inputs
-            const staffDisp = parseInt(document.getElementById('res-staff').value);
-            const laptopsDisp = parseInt(document.getElementById('res-laptops').value);
-            const budgetDisp = parseInt(document.getElementById('res-budget').value);
-            const avgSalary = parseInt(document.getElementById('res-salary').value);
-
-            // Calcular o custo salarial gerado por projeto (2 devs * salário individual)
-            const costOfStaffPerProject = requisitos.staff * avgSalary;
-            const totalCostPerProject = costOfStaffPerProject + requisitos.fixedTI;
-
-            // Atualizar labels numéricos
-            document.getElementById('label-staff').innerText = `${staffDisp} pessoas`;
-            document.getElementById('label-laptops').innerText = `${laptopsDisp} máquinas`;
-            document.getElementById('label-budget').innerText = `R$ ${budgetDisp.toLocaleString('pt-BR')}`;
-            document.getElementById('label-salary').innerText = `R$ ${avgSalary.toLocaleString('pt-BR')} / dev`;
-            document.getElementById('label-req-total').innerText = `R$ ${totalCostPerProject.toLocaleString('pt-BR')}`;
-
-            // Programação Linear (Max Z = x)
-            // Restrição 1 (Pessoal): 2x <= staffDisp  -> x <= staffDisp / 2
-            // Restrição 2 (Notebooks): 2x <= laptopsDisp -> x <= laptopsDisp / 2
-            // Restrição 3 (Orçamento): (3000 + 2S)x <= budgetDisp -> x <= budgetDisp / totalCostPerProject
-            
-            const limiteStaff = staffDisp / requisitos.staff;
-            const limiteLaptops = laptopsDisp / requisitos.laptops;
-            const limiteBudget = budgetDisp / totalCostPerProject;
-
-            const maxProjetos = Math.floor(Math.min(limiteStaff, limiteLaptops, limiteBudget));
-
-            // Atualizar KPI Principal
-            document.getElementById('res-final').innerText = `${maxProjetos} ${maxProjetos === 1 ? 'Projeto' : 'Projetos'}`;
-
-            // Calcular Consumo Final Real
-            const consumidoStaff = maxProjetos * requisitos.staff;
-            const consumidoLaptops = maxProjetos * requisitos.laptops;
-            const consumidoBudget = maxProjetos * totalCostPerProject;
-
-            const pctStaff = staffDisp > 0 ? (consumidoStaff / staffDisp) * 100 : 0;
-            const pctLaptops = laptopsDisp > 0 ? (consumidoLaptops / laptopsDisp) * 100 : 0;
-            const pctBudget = budgetDisp > 0 ? (consumidoBudget / budgetDisp) * 100 : 0;
-
-            // Renderizar Barras de Consumo com a nova barra de Laptops
-            const container = document.getElementById('usage-bars');
-            container.innerHTML = `
-                <!-- Pessoal -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
-                        <span>CAPACIDADE DE PESSOAL</span>
-                        <span>${pctStaff.toFixed(0)}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div style="width: ${pctStaff}%" class="bg-corporate-500 h-full rounded-full transition-all duration-500"></div>
-                    </div>
-                    <div class="flex justify-between text-[9px] text-slate-400">
-                        <span>Usado: ${consumidoStaff} pessoas</span>
-                        <span>Sobram: ${staffDisp - consumidoStaff}</span>
-                    </div>
-                </div>
-                <!-- Notebooks -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
-                        <span>EQUIPAMENTO (NOTEBOOKS)</span>
-                        <span>${pctLaptops.toFixed(0)}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div style="width: ${pctLaptops}%" class="bg-indigo-500 h-full rounded-full transition-all duration-500"></div>
-                    </div>
-                    <div class="flex justify-between text-[9px] text-slate-400">
-                        <span>Usado: ${consumidoLaptops} máquinas</span>
-                        <span>Sobram: ${laptopsDisp - consumidoLaptops}</span>
-                    </div>
-                </div>
-                <!-- Financeiro -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-500">
-                        <span>CAPACIDADE FINANCEIRA</span>
-                        <span>${pctBudget.toFixed(0)}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div style="width: ${pctBudget}%" class="bg-emerald-500 h-full rounded-full transition-all duration-500"></div>
-                    </div>
-                    <div class="flex justify-between text-[9px] text-slate-400">
-                        <span>Gasto: R$ ${consumidoBudget.toLocaleString('pt-BR')}</span>
-                        <span>Sobram: R$ ${(budgetDisp - consumidoBudget).toLocaleString('pt-BR')}</span>
-                    </div>
-                </div>
-            `;
-
-            // Diagnóstico de Gargalo (Três limitadores possíveis)
-            const descEl = document.getElementById('bottleneck-desc');
-            const iconEl = document.getElementById('bottleneck-icon');
-            
-            const minLimitVal = Math.min(limiteStaff, limiteLaptops, limiteBudget);
-
-            if (minLimitVal === limiteStaff) {
-                descEl.innerHTML = `O gargalo atual é a <b>equipe reduzida</b>. Você tem dinheiro e computadores sobrando, mas faltam desenvolvedores no mercado para abrir novos projetos.`;
-                iconEl.className = "w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl";
-                iconEl.innerHTML = '<i class="fa-solid fa-user-slash"></i>';
-            } else if (minLimitVal === limiteLaptops) {
-                descEl.innerHTML = `O gargalo atual são os <b>computadores (Notebooks)</b>. Sua empresa tem orçamento e pessoal prontos, mas faltam laptops de desenvolvimento para entregá-los.`;
-                iconEl.className = "w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-2xl";
-                iconEl.innerHTML = '<i class="fa-solid fa-laptop-code"></i>';
-            } else if (minLimitVal === limiteBudget) {
-                descEl.innerHTML = `O gargalo atual é o <b>orçamento</b>. A folha de pagamento de <b>R$ ${avgSalary.toLocaleString('pt-BR')}</b> limitou a capacidade financeira operacional.`;
-                iconEl.className = "w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl";
-                iconEl.innerHTML = '<i class="fa-solid fa-sack-xmark"></i>';
+        // Alternar a visibilidade da ficha técnica das receitas
+        function toggleFicha() {
+            const painel = document.getElementById('ficha-painel');
+            const arrow = document.getElementById('ficha-arrow');
+            if (painel.classList.contains('hidden')) {
+                painel.classList.remove('hidden');
+                arrow.classList.add('rotate-180');
             } else {
-                descEl.innerHTML = `Sua operação está <b>perfeitamente balanceada</b> entre capital humano, infraestrutura e financeiro.`;
-                iconEl.className = "w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl";
-                iconEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
+                painel.classList.add('hidden');
+                arrow.classList.remove('rotate-180');
             }
-
-            // Renderizar Formulação Matemática em LaTeX usando KaTeX
-            const mathEl = document.getElementById('math-formula');
-            const latex = `
-            \\begin{aligned}
-            \\text{Maximizar Projetos: } & Z = x \\\\
-            \\text{Sujeito a (Pessoal): } & ${requisitos.staff}x \\le ${staffDisp} \\\\
-            \\text{Sujeito a (Notebooks): } & ${requisitos.laptops}x \\le ${laptopsDisp} \\\\
-            \\text{Sujeito a (Financeiro): } & ${totalCostPerProject}x \\le ${budgetDisp} \\quad \\left(1500 + 2 \\times ${avgSalary}\\right) \\\\
-            \\text{Restrição Física: } & x \\in \\mathbb{Z}^+
-            \\end{aligned}
-            `;
-            katex.render(latex, mathEl, { displayMode: true });
         }
 
-        // Iniciar
-        window.onload = calcular;
+        // Definir modo de arredondamento
+        function setRounding(active) {
+            roundDown = active;
+            const btnDec = document.getElementById('btn-dec');
+            const btnInt = document.getElementById('btn-int');
+            
+            if (roundDown) {
+                btnInt.className = "text-[10px] font-bold px-2 py-1 rounded-lg transition duration-150 bg-pizza-600 text-white shadow-sm";
+                btnDec.className = "text-[10px] font-bold px-2 py-1 rounded-lg transition duration-150 bg-white text-slate-500 hover:text-slate-700";
+            } else {
+                btnDec.className = "text-[10px] font-bold px-2 py-1 rounded-lg transition duration-150 bg-pizza-600 text-white shadow-sm";
+                btnInt.className = "text-[10px] font-bold px-2 py-1 rounded-lg transition duration-150 bg-white text-slate-500 hover:text-slate-700";
+            }
+            calcular();
+        }
+
+        function calcular() {
+            // Pegar valores dos inputs com tratamento para evitar NaN se o campo estiver vazio
+            const pX1 = parseFloat(document.getElementById('profit-x1').value) || 0;
+            const pX2 = parseFloat(document.getElementById('profit-x2').value) || 0;
+
+            const a11 = parseFloat(document.getElementById('coef-r1-x1').value) || 0;
+            const a12 = parseFloat(document.getElementById('coef-r1-x2').value) || 0;
+            const b1  = parseFloat(document.getElementById('rhs-r1').value) || 0;
+
+            const a21 = parseFloat(document.getElementById('coef-r2-x1').value) || 0;
+            const a22 = parseFloat(document.getElementById('coef-r2-x2').value) || 0;
+            const b2  = parseFloat(document.getElementById('rhs-r2').value) || 0;
+
+            const a31 = parseFloat(document.getElementById('coef-r3-x1').value) || 0;
+            const a32 = parseFloat(document.getElementById('coef-r3-x2').value) || 0;
+            const b3  = parseFloat(document.getElementById('rhs-r3').value) || 0;
+
+            const a41 = parseFloat(document.getElementById('coef-r4-x1').value) || 0;
+            const a42 = parseFloat(document.getElementById('coef-r4-x2').value) || 0;
+            const b4  = parseFloat(document.getElementById('rhs-r4').value) || 0;
+
+            // Solver de Programação Linear 2D por Interseção de Retas
+            const lines = [
+                { a: a11, b: a12, c: b1, name: 'Massa', color: '#6366f1' },
+                { a: a21, b: a22, c: b2, name: 'Queijo', color: '#10b981' },
+                { a: a31, b: a32, c: b3, name: 'Molho', color: '#f59e0b' },
+                { a: a41, b: a42, c: b4, name: 'Calabresa', color: '#f43f5e' },
+                { a: 1.0, b: 0.0, c: 0, name: 'Eixo Y' },
+                { a: 0.0, b: 1.0, c: 0, name: 'Eixo X' }
+            ];
+
+            let vertices = [];
+
+            // Intersectar todas as combinações de 2 retas para achar candidatos a vértices
+            for (let i = 0; i < lines.length; i++) {
+                for (let j = i + 1; j < lines.length; j++) {
+                    const l1 = lines[i];
+                    const l2 = lines[j];
+                    const D = l1.a * l2.b - l2.a * l1.b;
+
+                    if (Math.abs(D) > 1e-9) {
+                        const x = (l1.c * l2.b - l2.c * l1.b) / D;
+                        const y = (l1.a * l2.c - l2.a * l1.c) / D;
+
+                        // Verificar se o vértice está na região viável
+                        if (x >= -1e-5 && y >= -1e-5) {
+                            let feasible = true;
+                            
+                            if (a11 * x + a12 * y > b1 + 1e-5) feasible = false;
+                            if (a21 * x + a22 * y > b2 + 1e-5) feasible = false;
+                            if (a31 * x + a32 * y > b3 + 1e-5) feasible = false;
+                            if (a41 * x + a42 * y > b4 + 1e-5) feasible = false;
+
+                            if (feasible) {
+                                if (!vertices.some(v => Math.abs(v.x - x) < 1e-4 && Math.abs(v.y - y) < 1e-4)) {
+                                    vertices.push({ x: Math.max(0, x), y: Math.max(0, y) });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Ordenar vértices de forma polar
+            if (vertices.length > 0) {
+                let cx = 0, cy = 0;
+                vertices.forEach(v => { cx += v.x; cy += v.y; });
+                cx /= vertices.length;
+                cy /= vertices.length;
+                vertices.sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+            }
+
+            // Encontrar o ponto ótimo
+            let maxZ = -1;
+            let optX1 = 0;
+            let optX2 = 0;
+
+            vertices.forEach(v => {
+                const z = pX1 * v.x + pX2 * v.y;
+                if (z > maxZ) {
+                    maxZ = z;
+                    optX1 = v.x;
+                    optX2 = v.y;
+                }
+            });
+
+            if (maxZ === -1) {
+                maxZ = 0;
+                optX1 = 0;
+                optX2 = 0;
+            }
+
+            // Aplicar arredondamento de produção
+            let finalX1 = optX1;
+            let finalX2 = optX2;
+            let finalZ = maxZ;
+
+            if (roundDown) {
+                finalX1 = Math.floor(optX1);
+                finalX2 = Math.floor(optX2);
+                finalZ = pX1 * finalX1 + pX2 * finalX2;
+                document.getElementById('status-badge').innerHTML = '<i class="fa-solid fa-circle-check"></i> Pizzas Inteiras';
+            } else {
+                document.getElementById('status-badge').innerHTML = '<i class="fa-solid fa-circle-nodes"></i> Teorias Decimais';
+            }
+
+            // Atualizar elementos textuais
+            document.getElementById('res-lucro').innerText = `R$ ${finalZ.toFixed(2).replace('.', ',')}`;
+            document.getElementById('res-pizza-x1').innerText = roundDown ? `${finalX1} fatias` : `${finalX1.toFixed(4).replace('.', ',')} fatias`;
+            document.getElementById('res-pizza-x2').innerText = roundDown ? `${finalX2} fatias` : `${finalX2.toFixed(4).replace('.', ',')} fatias`;
+
+            // Calcular o consumo real dos insumos
+            const u1 = a11 * finalX1 + a12 * finalX2;
+            const u2 = a21 * finalX1 + a22 * finalX2;
+            const u3 = a31 * finalX1 + a32 * finalX2;
+            const u4 = a41 * finalX1 + a42 * finalX2;
+
+            const pct1 = b1 > 0 ? (u1 / b1) * 100 : 0;
+            const pct2 = b2 > 0 ? (u2 / b2) * 100 : 0;
+            const pct3 = b3 > 0 ? (u3 / b3) * 100 : 0;
+            const pct4 = b4 > 0 ? (u4 / b4) * 100 : 0;
+
+            // Determinar gargalos (consumo máximo ativo)
+            const threshold = 0.005;
+            const isBot1 = Math.abs(b1 - u1) < threshold;
+            const isBot2 = Math.abs(b2 - u2) < threshold;
+            const isBot3 = Math.abs(b3 - u3) < threshold;
+            const isBot4 = Math.abs(b4 - u4) < threshold;
+
+            // Atualizar as barras de consumo de forma muito mais simples e limpa
+            const usageBarsContainer = document.getElementById('usage-bars');
+            usageBarsContainer.innerHTML = `
+                <!-- Massa -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> MASSA</span>
+                        <div class="flex items-center gap-2">
+                            ${isBot1 ? '<span class="text-[8px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-extrabold tracking-wider">GARGALO</span>' : ''}
+                            <span>${pct1.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div style="width: ${pct1}%" class="${isBot1 ? 'bg-red-500' : 'bg-indigo-500'} h-full rounded-full transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Gasto: ${u1.toFixed(2)} kg</span>
+                        <span>Sobrou: ${(b1 - u1).toFixed(2)} kg</span>
+                    </div>
+                </div>
+
+                <!-- Queijo -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> QUEIJO MUÇARELA</span>
+                        <div class="flex items-center gap-2">
+                            ${isBot2 ? '<span class="text-[8px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-extrabold tracking-wider">GARGALO</span>' : ''}
+                            <span>${pct2.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div style="width: ${pct2}%" class="${isBot2 ? 'bg-red-500' : 'bg-emerald-500'} h-full rounded-full transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Gasto: ${u2.toFixed(2)} kg</span>
+                        <span>Sobrou: ${(b2 - u2).toFixed(2)} kg</span>
+                    </div>
+                </div>
+
+                <!-- Molho -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> MOLHO DE TOMATE</span>
+                        <div class="flex items-center gap-2">
+                            ${isBot3 ? '<span class="text-[8px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-extrabold tracking-wider">GARGALO</span>' : ''}
+                            <span>${pct3.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div style="width: ${pct3}%" class="${isBot3 ? 'bg-red-500' : 'bg-amber-500'} h-full rounded-full transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Gasto: ${u3.toFixed(2)} kg</span>
+                        <span>Sobrou: ${(b3 - u3).toFixed(2)} kg</span>
+                    </div>
+                </div>
+
+                <!-- Calabresa -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> LINGUIÇA CALABRESA</span>
+                        <div class="flex items-center gap-2">
+                            ${isBot4 ? '<span class="text-[8px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-extrabold tracking-wider">GARGALO</span>' : ''}
+                            <span>${pct4.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div style="width: ${pct4}%" class="${isBot4 ? 'bg-red-500' : 'bg-rose-500'} h-full rounded-full transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400">
+                        <span>Gasto: ${u4.toFixed(2)} kg</span>
+                        <span>Sobrou: ${(b4 - u4).toFixed(2)} kg</span>
+                    </div>
+                </div>
+            `;
+
+            // Redesenhar o Canvas do gráfico cartesiano
+            drawGraph(vertices, optX1, optX2, finalX1, finalX2, lines);
+        }
+
+        function restaurarPadrao() {
+            document.getElementById('profit-x1').value = "20";
+            document.getElementById('profit-x2').value = "25";
+            
+            document.getElementById('coef-r1-x1').value = "0.5";
+            document.getElementById('coef-r1-x2').value = "0.5";
+            document.getElementById('rhs-r1').value = "10";
+
+            document.getElementById('coef-r2-x1').value = "0.3";
+            document.getElementById('coef-r2-x2').value = "0.2";
+            document.getElementById('rhs-r2').value = "5";
+
+            document.getElementById('coef-r3-x1').value = "0.2";
+            document.getElementById('coef-r3-x2').value = "0.2";
+            document.getElementById('rhs-r3').value = "4";
+
+            document.getElementById('coef-r4-x1').value = "0";
+            document.getElementById('coef-r4-x2').value = "0.15";
+            document.getElementById('rhs-r4').value = "2";
+
+            calcular();
+        }
+
+        function limparCampos() {
+            document.getElementById('profit-x1').value = "0";
+            document.getElementById('profit-x2').value = "0";
+            
+            document.getElementById('coef-r1-x1').value = "0";
+            document.getElementById('coef-r1-x2').value = "0";
+            document.getElementById('rhs-r1').value = "0";
+
+            document.getElementById('coef-r2-x1').value = "0";
+            document.getElementById('coef-r2-x2').value = "0";
+            document.getElementById('rhs-r2').value = "0";
+
+            document.getElementById('coef-r3-x1').value = "0";
+            document.getElementById('coef-r3-x2').value = "0";
+            document.getElementById('rhs-r3').value = "0";
+
+            document.getElementById('coef-r4-x1').value = "0";
+            document.getElementById('coef-r4-x2').value = "0";
+            document.getElementById('rhs-r4').value = "0";
+
+            calcular();
+        }
+
+        function drawGraph(vertices, optX1, optX2, finalX1, finalX2, lines) {
+            const canvas = document.getElementById('graph-canvas');
+            const ctx = canvas.getContext('2d');
+
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = rect.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            let maxValX = 15;
+            let maxValY = 15;
+
+            lines.forEach(line => {
+                if (line.c > 0) {
+                    if (line.a > 0) maxValX = Math.max(maxValX, line.c / line.a);
+                    if (line.b > 0) maxValY = Math.max(maxValY, line.c / line.b);
+                }
+            });
+
+            const graphMaxX = Math.ceil(maxValX * 1.15);
+            const graphMaxY = Math.ceil(maxValY * 1.15);
+
+            const paddingLeft = 40;
+            const paddingBottom = 30;
+            const paddingTop = 20;
+            const paddingRight = 20;
+
+            const plotWidth = width - paddingLeft - paddingRight;
+            const plotHeight = height - paddingTop - paddingBottom;
+
+            function toScreenX(x) {
+                return paddingLeft + (x / graphMaxX) * plotWidth;
+            }
+            function toScreenY(y) {
+                return paddingTop + plotHeight - (y / graphMaxY) * plotHeight;
+            }
+
+            // Grade Cartesiana Limpa
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '8px Inter';
+            ctx.textAlign = 'center';
+
+            const stepX = Math.ceil(graphMaxX / 6);
+            for (let x = 0; x <= graphMaxX; x += stepX > 0 ? stepX : 1) {
+                const sx = toScreenX(x);
+                ctx.beginPath();
+                ctx.moveTo(sx, paddingTop);
+                ctx.lineTo(sx, paddingTop + plotHeight);
+                ctx.stroke();
+                ctx.fillText(x.toString(), sx, paddingTop + plotHeight + 12);
+            }
+
+            ctx.textAlign = 'right';
+            const stepY = Math.ceil(graphMaxY / 6);
+            for (let y = 0; y <= graphMaxY; y += stepY > 0 ? stepY : 1) {
+                const sy = toScreenY(y);
+                ctx.beginPath();
+                ctx.moveTo(paddingLeft, sy);
+                ctx.lineTo(paddingLeft + plotWidth, sy);
+                ctx.stroke();
+                ctx.fillText(y.toString(), paddingLeft - 6, sy + 3);
+            }
+
+            // Região Viável Laranja Sutil
+            if (vertices.length > 1) {
+                ctx.fillStyle = 'rgba(234, 88, 12, 0.08)';
+                ctx.beginPath();
+                ctx.moveTo(toScreenX(vertices[0].x), toScreenY(vertices[0].y));
+                for (let k = 1; k < vertices.length; k++) {
+                    ctx.lineTo(toScreenX(vertices[k].x), toScreenY(vertices[k].y));
+                }
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(234, 88, 12, 0.25)';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+            }
+
+            // Retas de Restrição R1-R4
+            lines.forEach((line, index) => {
+                if (index >= 4) return;
+
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+
+                let p1, p2;
+                if (line.a === 0 && line.b === 0) return;
+
+                if (line.a === 0) {
+                    const yVal = line.c / line.b;
+                    p1 = { x: 0, y: yVal };
+                    p2 = { x: graphMaxX, y: yVal };
+                } else if (line.b === 0) {
+                    const xVal = line.c / line.a;
+                    p1 = { x: xVal, y: 0 };
+                    p2 = { x: xVal, y: graphMaxY };
+                } else {
+                    const xAtZero = line.c / line.a;
+                    const yAtZero = line.c / line.b;
+                    p1 = { x: 0, y: yAtZero };
+                    p2 = { x: xAtZero, y: 0 };
+                }
+
+                ctx.moveTo(toScreenX(p1.x), toScreenY(p1.y));
+                ctx.lineTo(toScreenX(p2.x), toScreenY(p2.y));
+                ctx.stroke();
+            });
+
+            // Eixos Principais
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(paddingLeft, paddingTop);
+            ctx.lineTo(paddingLeft, paddingTop + plotHeight);
+            ctx.lineTo(paddingLeft + plotWidth, paddingTop + plotHeight);
+            ctx.stroke();
+
+            // Rótulo dos Eixos
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 8px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText('Muçarela (X₁) ➔', paddingLeft + plotWidth, paddingTop + plotHeight - 4);
+
+            ctx.save();
+            ctx.translate(paddingLeft + 10, paddingTop + 8);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'right';
+            ctx.fillText('Calabresa (X₂) ➔', 0, 0);
+            ctx.restore();
+
+            // Ponto Ótimo Ativo
+            const optSx = toScreenX(finalX1);
+            const optSy = toScreenY(finalX2);
+
+            ctx.strokeStyle = 'rgba(234, 88, 12, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(optSx, optSy);
+            ctx.lineTo(paddingLeft, optSy);
+            ctx.moveTo(optSx, optSy);
+            ctx.lineTo(optSx, paddingTop + plotHeight);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (roundDown && (optX1 !== finalX1 || optX2 !== finalX2)) {
+                // Desenhar marcador teórico discreto de fundo se estiver arredondado
+                const teoOptSx = toScreenX(optX1);
+                const teoOptSy = toScreenY(optX2);
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+                ctx.beginPath();
+                ctx.arc(teoOptSx, teoOptSy, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = '#ea580c';
+            ctx.beginPath();
+            ctx.arc(optSx, optSy, 4.5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(optSx, optSy, 4.5, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+
+        window.onload = function() {
+            calcular();
+            window.addEventListener('resize', calcular);
+        };
     </script>
 </body>
 </html>
